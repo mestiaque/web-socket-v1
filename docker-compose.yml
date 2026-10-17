@@ -1,0 +1,17 @@
+# Local development: docker compose up --build
+# Requires ./apps.json (copy apps.example.json) and ./.env (copy .env.example).
+services:
+  dynamicsocket:
+    build: .
+    init: true
+    env_file: .env
+    environment:
+      DS_HOST: 0.0.0.0
+      DS_PORT: 6001
+      DS_APPS_FILE: /app/apps.json
+    volumes:
+      - ./apps.json:/app/apps.json:ro
+    ports:
+      - "127.0.0.1:6001:6001"
+    stop_grace_period: 20s
+    restart: unless-stopped

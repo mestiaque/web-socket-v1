@@ -1,0 +1,33 @@
+# /etc/systemd/system/dynamicsocket.service
+[Unit]
+Description=DynamicSocket WebSocket server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=dynamicsocket
+Group=dynamicsocket
+WorkingDirectory=/opt/dynamicsocket
+EnvironmentFile=/etc/dynamicsocket/dynamicsocket.env
+ExecStart=/usr/bin/node /opt/dynamicsocket/src/server.js
+Restart=on-failure
+RestartSec=2
+KillSignal=SIGTERM
+TimeoutStopSec=20
+LimitNOFILE=65536
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+ReadOnlyPaths=/opt/dynamicsocket /etc/dynamicsocket
+
+[Install]
+WantedBy=multi-user.target

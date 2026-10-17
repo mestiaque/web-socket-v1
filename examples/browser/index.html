@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DynamicSocket demo</title>
+  <style>
+    body { font: 15px/1.5 system-ui, sans-serif; margin: 0 auto; max-width: 760px; padding: 16px; color: #1d1d1f; background: #fff; }
+    @media (prefers-color-scheme: dark) { body { color: #eee; background: #161616; } input, button { color: inherit; background: #262626; border-color: #444; } }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+    input { flex: 1; min-width: 140px; padding: 6px 8px; border: 1px solid #bbb; border-radius: 6px; }
+    button { padding: 6px 12px; border: 1px solid #bbb; border-radius: 6px; cursor: pointer; }
+    #state { font-weight: 600; }
+    #log { font: 13px ui-monospace, monospace; white-space: pre-wrap; border: 1px solid #8884; border-radius: 6px; padding: 8px; min-height: 200px; }
+  </style>
+</head>
+<body>
+  <h1>DynamicSocket demo</h1>
+  <p>State: <span id="state">idle</span></p>
+  <div class="row">
+    <input id="channel" value="demo.orders" aria-label="Channel">
+    <button id="sub">Subscribe</button>
+    <button id="unsub">Unsubscribe</button>
+  </div>
+  <div class="row">
+    <input id="event" value="order.created" aria-label="Event name">
+    <input id="data" value='{"order_id": 1001, "status": "pending"}' aria-label="JSON data">
+    <button id="send">Publish via backend</button>
+  </div>
+  <div id="log" role="log"></div>
+
+  <script type="module">
+    import { DynamicSocket } from '/sdk/dynamicsocket.js';
+
+    const $ = (id) => document.getElementById(id);
+    const log = (...parts) => { $('log').textContent = `${new Date().toLocaleTimeString()}  ${parts.join(' ')}\n` + $('log').textContent; };
+    const cfg = await (await fetch('/config')).json();
+
+    const socket = new DynamicSocket({
+      url: cfg.url,
+      appId: cfg.appId,
+      token: async () => (await (await fetch('/token', { method: 'POST' })).json()).token,
+    });
+    socket.on('state', ({ state }) => { $('state').textContent = state; });
+    socket.on('connected', ({ connectionId }) => log('connected', connectionId));
+    socket.on('disconnected', ({ code, willReconnect }) => log('disconnected', code, willReconnect ? '(reconnecting)' : ''));
+    socket.on('auth_error', ({ code }) => log('auth error', code));
+    socket.on('subscription_error', ({ channel, code }) => log('subscription refused', channel, code));
+    socket.listen('*', (data, meta) => log('event', meta.event, 'on', meta.channel ?? '(user)', JSON.stringify(data)));
+
+    $('sub').onclick = () => socket.subscribe($('channel').value).then(() => log('subscribed', $('channel').value), () => {});
+    $('unsub').onclick = () => { socket.unsubscribe($('channel').value); log('unsubscribed', $('channel').value); };
+    $('send').onclick = async () => {
+      let data;
+      try { data = JSON.parse($('data').value); } catch { log('data is not valid JSON'); return; }
+      const res = await fetch('/publish', { method: 'POST', body: JSON.stringify({ channel: $('channel').value, event: $('event').value, data }) });
+      const body = await res.json();
+      log('publish', res.status, body.ok ? `sent=${body.delivery.sent}` : body.error.code);
+    };
+
+    await socket.connect();
+    await socket.subscribe('demo.orders');
+    log('subscribed demo.orders');
+  </script>
+</body>
+</html>

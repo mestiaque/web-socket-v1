@@ -1,0 +1,36 @@
+{
+  "name": "dynamicsocket",
+  "version": "0.2.0",
+  "description": "Self-hosted, multi-application WebSocket server with signed client tokens and an HMAC-authenticated publish API for Laravel and other backends.",
+  "private": true,
+  "type": "module",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=20.12.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test --test-concurrency=1 tests/",
+    "test:unit": "node --test tests/unit/",
+    "test:integration": "node --test --test-concurrency=1 tests/integration/",
+    "test:security": "node --test --test-concurrency=1 tests/security/",
+    "test:e2e:setup": "tests/e2e/setup-laravel.sh",
+    "test:e2e": "node tests/e2e/laravel-browser.e2e.mjs",
+    "lint": "eslint .",
+    "app:generate": "node scripts/generate-app.js",
+    "token:issue": "node scripts/issue-token.js",
+    "publish:signed": "node scripts/publish.js",
+    "loadtest": "node scripts/loadtest.js",
+    "test:docker": "tests/docker/smoke.sh"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "ws": "8.22.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "eslint": "9.39.5",
+    "globals": "17.13.0"
+  }
+}

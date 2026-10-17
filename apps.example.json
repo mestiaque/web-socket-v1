@@ -1,0 +1,24 @@
+[
+  {
+    "id": "shop",
+    "name": "Shop (Laravel)",
+    "keys": [
+      { "id": "k1", "secretEnv": "DS_SHOP_SECRET_K1" }
+    ],
+    "allowedOrigins": ["https://shop.example.com", "http://localhost:8000"],
+    "allowMissingOrigin": false,
+    "publicChannels": ["announcements", "status.*", "online"],
+    "presenceChannels": ["online", "presence.*"],
+    "maxConnections": 5000,
+    "publishRate": { "perSecond": 100, "burst": 200 }
+  },
+  {
+    "id": "parking",
+    "name": "Parking portal",
+    "keys": [
+      { "id": "2026-10", "secretEnv": "DS_PARKING_SECRET_2026_10" }
+    ],
+    "allowedOrigins": ["https://parking.example.com"],
+    "publicChannels": []
+  }
+]
